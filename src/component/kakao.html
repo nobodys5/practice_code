@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://code.jquery.com/jquery-3.4.1.js"></script>
+    <title>Document</title>
+</head>
+<body>
+    <button id="btn-pay-ready" type="button">카카오페이</button>
+    <script type="text/javascript">
+         $(function() {
+            
+             $("#btn-pay-ready").click(function(e) {
+                e.preventDefault();
+                var kakao = document.getElementById("btn-pay-ready");
+                alert('kakao 호출');
+            // 아래 데이터 외에도 필요한 데이터를 원하는 대로 담고, Controller에서 @RequestBody로 받으면 됨
+            let data = {
+                name: '상품명',    // 카카오페이에 보낼 대표 상품명
+                totalPrice: 20000 // 총 결제금액
+            };
+          
+            $.ajax({
+                type: 'POST',
+                url: 'http://localhost:8000/order/pay/ready',
+                data: JSON.stringify(data),
+                contentType: 'application/json',
+                success: function(response) {
+                    location.href = response.next_redirect_pc_url;
+                }
+            });
+        });
+    });
+    </script>
+</body>
+</html>
