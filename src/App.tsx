@@ -11,6 +11,7 @@ import { Url } from 'url';
 
 function App() {
   
+  const [passwordMessage, setPasswordMessage] = useState<string>('');
 
   // 위의 props 객체와 동일한 내용의 객체를 아래에서 선언하여 원본 복사
   // 스프레드 객체를 컴포넌트에서 복사해서 사용하여 깔끔한 코드 사용가능 
@@ -56,13 +57,70 @@ function App() {
   
   return (
     <div>
-      <div>테스트용
-        <button onClick={onClickKaKaoTestHandler}>테스트</button>
-      </div>
-    
+      <SigninComponent message={passwordMessage} />    
     </div>
   );
 }
+interface Props {
+  message:string
+}
 
+export function SigninComponent ({message}: Props) {
+  const [name, setName] = useState<string>('');
+  const [id, setId] = useState<string>('');
+  const [idCheck, setIdCheck] = useState<boolean>(false);
+
+  const [password, setPassword] = useState<string>('');
+  const [passwordMessage, setPasswordMessage] = useState<string>('');
+  const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
+
+  const [telNumber, setTelNumber] = useState<string>('');
+
+  const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setName(value); 
+  }
+  const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    
+    setIdCheck(idCheck);
+    setId(value); 
+  }
+  const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setPassword(value); 
+    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8~13}$/
+    const isSucced = pattern.test(value);
+
+    const test = (isSucced || !value) ? '하이' : '비밀번호를 입력해주세요'
+    setPasswordMessage(test);
+    setIsPasswordMessage(isSucced);
+  }
+  const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setTelNumber(value); 
+  }
+  return(
+    <div>
+      <div>
+      <label>이름</label>
+      </div>
+      <input placeholder='이름을 입력해주세요' type='text' value={name} onChange={onNameChangeHandler}/>
+      <div>
+      <label>아이디</label>
+      </div>
+      <input placeholder='아이디를 입력해주세요' type='text' value={id} onChange={onIdChangeHandler}/>
+      <div>
+      <label>비밀번호</label>
+      </div>
+      <input placeholder='비밀번호를 입력해주세요' type='text' value={password} onChange={onPasswordChangeHandler}/>
+      <div>
+      <label>전화번호</label>
+      </div>
+      <input placeholder='전화번호를 입력해주세요' type='text' value={telNumber} onChange={onTelNumberChangeHandler}/>
+      <button>인증버튼</button>
+    </div>
+  )
+}
 export default App;
 
