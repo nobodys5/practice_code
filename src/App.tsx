@@ -12,7 +12,19 @@ import { Url } from 'url';
 function App() {
   
   const [passwordMessage, setPasswordMessage] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
 
+  const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8~13}$/
+    const isSucced = pattern.test(value);
+    setPassword(value); 
+
+    const test = (isSucced || !value) ? '하이' : '비밀번호를 입력해주세요';
+    setPasswordMessage(test);
+    setIsPasswordMessage(isSucced);
+  }
   // 위의 props 객체와 동일한 내용의 객체를 아래에서 선언하여 원본 복사
   // 스프레드 객체를 컴포넌트에서 복사해서 사용하여 깔끔한 코드 사용가능 
   const [url, setUrl] = useState<string>('');
@@ -57,15 +69,17 @@ function App() {
   
   return (
     <div>
-      <SigninComponent message={passwordMessage} />    
+      <SigninComponent message={passwordMessage} onchange={onPasswordChangeHandler} value={password} />    
     </div>
   );
 }
 interface Props {
   message:string
+  onchange: (event:ChangeEvent<HTMLInputElement>) => void;
+  value: string;
 }
 
-export function SigninComponent ({message}: Props) {
+export function SigninComponent ({message, onchange, value}: Props) {
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
   const [idCheck, setIdCheck] = useState<boolean>(false);
@@ -73,8 +87,10 @@ export function SigninComponent ({message}: Props) {
   const [password, setPassword] = useState<string>('');
   const [passwordMessage, setPasswordMessage] = useState<string>('');
   const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
-
+  
   const [telNumber, setTelNumber] = useState<string>('');
+  const [telNumberMessage, setTelNumberMessage] = useState<string>('');
+  const [isTelNumberMessage, setIsTelNumberMessage] = useState<boolean>(false);
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -88,21 +104,28 @@ export function SigninComponent ({message}: Props) {
   }
   const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    setPassword(value); 
     const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8~13}$/
     const isSucced = pattern.test(value);
+    setPassword(value); 
 
-    const test = (isSucced || !value) ? '하이' : '비밀번호를 입력해주세요'
+    const test = (isSucced || !value) ? '' : '8~13자리를 입력해주세요.';
     setPasswordMessage(test);
     setIsPasswordMessage(isSucced);
   }
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
+
+    const pattern = /^(?=.*[0-9]).{11}$/
+    const isSucced = pattern.test(value);
     setTelNumber(value); 
+
+    const test = (isSucced || !value) ? '' : '중복된 전화번호입니다.';
+    setTelNumberMessage(test);
+    setIsTelNumberMessage(isSucced);
   }
   return(
     <div>
-      <div>
+      <div className='name'>
       <label>이름</label>
       </div>
       <input placeholder='이름을 입력해주세요' type='text' value={name} onChange={onNameChangeHandler}/>
@@ -114,10 +137,12 @@ export function SigninComponent ({message}: Props) {
       <label>비밀번호</label>
       </div>
       <input placeholder='비밀번호를 입력해주세요' type='text' value={password} onChange={onPasswordChangeHandler}/>
+      <div>{passwordMessage}</div>
       <div>
       <label>전화번호</label>
       </div>
       <input placeholder='전화번호를 입력해주세요' type='text' value={telNumber} onChange={onTelNumberChangeHandler}/>
+      <div>{telNumberMessage}</div>
       <button>인증버튼</button>
     </div>
   )
