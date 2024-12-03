@@ -11,20 +11,57 @@ import { Url } from 'url';
 
 function App() {
   
-  const [passwordMessage, setPasswordMessage] = useState<string>('');
+  const [name, setName] = useState<string>('');
+  const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [telNumber, setTelNumber] = useState<string>('');
+
+  const [passwordCheck, setPasswordCheck] = useState<string>('');
+
+  const [idMessage, setIdMessage] = useState<string>('');
+  const [passwordMessage, setPasswordMessage] = useState<string>('');
+  const [telNumberMessage, setTelNumberMessage] = useState<string>('');
+
+  const [isNameMessage, setIsNameMessage] = useState<boolean>(false);
+  const [isidMessage, setIsIdMessage] = useState<boolean>(false);
   const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
+
+  const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setName(value); 
+  }
+
+  const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    
+    
+    setId(value); 
+ 
+  }
+  const onIdClickHandler = () => {
+    if (!id) return;
+    
+    
+    const isDuplicated = id === 'qwer1234';
+  
+    const test = isDuplicated ? '이미 사용중인 아이디입니다.' : "사용 가능한 아이디입니다."
+    setIdMessage(test);
+    setIsIdMessage(isDuplicated);
+  }
 
   const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
-    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8~13}$/
-    const isSucced = pattern.test(value);
     setPassword(value); 
+    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
+    const isSucced = pattern.test(value);
 
-    const test = (isSucced || !value) ? '하이' : '비밀번호를 입력해주세요';
+    const test = isSucced ? '' : '8~13자리 영문,특수문자 포함입력해주세요';
     setPasswordMessage(test);
-    setIsPasswordMessage(isSucced);
+    setIsPasswordMessage(!isSucced);
+   
   }
+
+  
   // 위의 props 객체와 동일한 내용의 객체를 아래에서 선언하여 원본 복사
   // 스프레드 객체를 컴포넌트에서 복사해서 사용하여 깔끔한 코드 사용가능 
   const [url, setUrl] = useState<string>('');
@@ -69,17 +106,25 @@ function App() {
   
   return (
     <div>
-      <SigninComponent message={passwordMessage} onchange={onPasswordChangeHandler} value={password} />    
+      <SigninComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
+      <SigninComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
+      <SigninComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
     </div>
   );
 }
 interface Props {
-  message:string
+  label: string;
+  type: 'text' | 'password';
+  placeholder:string;
+  message:string;
+  messageError:boolean;
+  buttonName?:string;
   onchange: (event:ChangeEvent<HTMLInputElement>) => void;
+  onClick?: () => void;
   value: string;
 }
 
-export function SigninComponent ({message, onchange, value}: Props) {
+export function SigninComponent ({label, type, placeholder, message, messageError, buttonName, onchange,onClick, value}: Props) {
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
   const [idCheck, setIdCheck] = useState<boolean>(false);
@@ -112,6 +157,7 @@ export function SigninComponent ({message, onchange, value}: Props) {
     setPasswordMessage(test);
     setIsPasswordMessage(isSucced);
   }
+  
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
 
@@ -125,25 +171,12 @@ export function SigninComponent ({message, onchange, value}: Props) {
   }
   return(
     <div>
-      <div className='name'>
-      <label>이름</label>
+      <div>{label}</div>
+      <div className='input-content'>
+        <input value={value} type={type} placeholder={placeholder} onChange={onchange}></input>
+        {buttonName && <div className={` ${value ? 'primary' : 'disable'}`} onClick={onClick}></div>}
       </div>
-      <input placeholder='이름을 입력해주세요' type='text' value={name} onChange={onNameChangeHandler}/>
-      <div>
-      <label>아이디</label>
-      </div>
-      <input placeholder='아이디를 입력해주세요' type='text' value={id} onChange={onIdChangeHandler}/>
-      <div>
-      <label>비밀번호</label>
-      </div>
-      <input placeholder='비밀번호를 입력해주세요' type='text' value={password} onChange={onPasswordChangeHandler}/>
-      <div>{passwordMessage}</div>
-      <div>
-      <label>전화번호</label>
-      </div>
-      <input placeholder='전화번호를 입력해주세요' type='text' value={telNumber} onChange={onTelNumberChangeHandler}/>
-      <div>{telNumberMessage}</div>
-      <button>인증버튼</button>
+      <div className={` ${messageError ? 'error' : 'primarysecond'}`}>{message}</div>
     </div>
   )
 }

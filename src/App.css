@@ -41,3 +41,29 @@
   display: flex;
   gap: 20px;
 }
+
+.primary {
+  width: 100px;
+  height: 30px;
+  background-color: rgb(55, 245, 182);
+  color: rgb(55, 245, 182);
+  cursor: pointer;
+}
+.primarysecond {
+  color: rgb(55, 245, 182);
+}
+
+.disable {
+  width: 100px;
+  color: black;
+  height: 30px;
+  background-color: rgb(214, 208, 208)
+}
+
+.error {
+  color: red;
+}
+
+.input-content {
+  display: flex;
+}
