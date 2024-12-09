@@ -25,6 +25,7 @@ function App() {
   const [isNameMessage, setIsNameMessage] = useState<boolean>(false);
   const [isidMessage, setIsIdMessage] = useState<boolean>(false);
   const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
+  const [isTelNumberMessage, setIsTelNumberMessage] = useState<boolean>(false);
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -34,8 +35,7 @@ function App() {
   const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     
-    
-    setId(value); 
+    const equal = id === 'qwer1234';
  
   }
   const onIdClickHandler = () => {
@@ -59,6 +59,17 @@ function App() {
     setPasswordMessage(test);
     setIsPasswordMessage(!isSucced);
    
+  }
+
+  const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setTelNumber(value); 
+    const pattern = /^(?=.*[0-9]).{11}$/;
+    const isSucced = pattern.test(value);
+    
+    const test = isSucced ? '' : '11자리 이내로 숫자만 입력해주세요';
+    setTelNumberMessage(test);
+    setIsTelNumberMessage(!isSucced);
   }
 
   
@@ -109,6 +120,7 @@ function App() {
       <SigninComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
       <SigninComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
       <SigninComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
+      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber}/>    
     </div>
   );
 }
