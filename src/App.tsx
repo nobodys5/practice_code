@@ -35,8 +35,8 @@ function App() {
   const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     
-    const equal = id === 'qwer1234';
- 
+  setId(value);
+  setIdMessage('');
   }
   const onIdClickHandler = () => {
     if (!id) return;
@@ -55,10 +55,9 @@ function App() {
     const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
     const isSucced = pattern.test(value);
 
-    const test = isSucced ? '' : '8~13자리 영문,특수문자 포함입력해주세요';
+    const test = (isSucced || !value) ? '' : '8~13자리 영문,특수문자 포함입력해주세요';
     setPasswordMessage(test);
     setIsPasswordMessage(!isSucced);
-   
   }
 
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +66,7 @@ function App() {
     const pattern = /^(?=.*[0-9]).{11}$/;
     const isSucced = pattern.test(value);
     
-    const test = isSucced ? '' : '11자리 이내로 숫자만 입력해주세요';
+    const test = (isSucced || !value) ? '' : '11자리 이내로 숫자만 입력해주세요';
     setTelNumberMessage(test);
     setIsTelNumberMessage(!isSucced);
   }
