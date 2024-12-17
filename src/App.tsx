@@ -14,18 +14,27 @@ function App() {
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [passwordPass, setPasswordPass] = useState<string>('');
   const [telNumber, setTelNumber] = useState<string>('');
+  const [authNumber, setAuthNumber] = useState<string>('');
 
   const [passwordCheck, setPasswordCheck] = useState<string>('');
 
   const [idMessage, setIdMessage] = useState<string>('');
   const [passwordMessage, setPasswordMessage] = useState<string>('');
+  const [passwordPassMessage, setPasswordPassMessage] = useState<string>('');
   const [telNumberMessage, setTelNumberMessage] = useState<string>('');
+  const [authNumberMessage, setAuthNumberMessage] = useState<string>('');
 
   const [isNameMessage, setIsNameMessage] = useState<boolean>(false);
   const [isidMessage, setIsIdMessage] = useState<boolean>(false);
   const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
+  const [ispasswordPassMessage, setIsPasswordPassMessage] = useState<boolean>(false);
   const [isTelNumberMessage, setIsTelNumberMessage] = useState<boolean>(false);
+  const [isAuthNumberMessage, setIsAuthNumberMessage] = useState<boolean>(false);
+
+
+  const [isSend, setSend] = useState<boolean>(false);
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -41,7 +50,15 @@ function App() {
   const onIdClickHandler = () => {
     if (!id) return;
     
+    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{4,8}$/;
+    const isSucced = pattern.test(id);
     
+    if (!isSucced) {
+      setIdMessage("숫자,영문 포함 8자리 이내로 입력하세요.");
+      setIsIdMessage(true);
+      return
+    }
+
     const isDuplicated = id === 'qwer1234';
   
     const test = isDuplicated ? '이미 사용중인 아이디입니다.' : "사용 가능한 아이디입니다."
@@ -54,21 +71,69 @@ function App() {
     setPassword(value); 
     const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
     const isSucced = pattern.test(value);
+    
 
     const test = (isSucced || !value) ? '' : '8~13자리 영문,특수문자 포함입력해주세요';
     setPasswordMessage(test);
     setIsPasswordMessage(!isSucced);
   }
+  const onPasswordPassChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setPasswordPass(value); 
+    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
+    const isSucced = pattern.test(value);
+
+    const check = passwordCheck === password;
+    const test = check ? '' : '비밀번호가 일치하지않습니다.';
+    setPasswordPassMessage(test);
+    setIsPasswordPassMessage(!isSucced);
+  }
 
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
     setTelNumber(value); 
-    const pattern = /^(?=.*[0-9]).{11}$/;
-    const isSucced = pattern.test(value);
+    setSend(false);
+    setTelNumberMessage('');
+  };
+
+  const onClickTelNumberHandler = () => {
+    if (!telNumber) return;
     
-    const test = (isSucced || !value) ? '' : '11자리 이내로 숫자만 입력해주세요';
-    setTelNumberMessage(test);
-    setIsTelNumberMessage(!isSucced);
+    const pattern = /^[0-9]{11}$/;
+    const isMatched = pattern.test(telNumber);
+
+    if (!isMatched) {
+      setTelNumberMessage('11자리 숫자로 입력해주세요.')
+      setIsTelNumberMessage(true);
+      return
+    }; 
+
+    setTelNumberMessage('인증번호 전송');
+    setIsTelNumberMessage(false);
+    setSend(true);
+    
+  }
+
+  const onAuthNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setAuthNumber(value); 
+    const pattern = /^(?=.*[0-9]).{4}$/;
+    const isSucced = pattern.test(value);
+
+    
+    setIsAuthNumberMessage(!isSucced);
+    setAuthNumberMessage('');
+  }
+  const onAuthNumberClickHandler = () => {
+    const pattern = /^[0-9]{4}$/;
+    const isSucced = pattern.test(authNumber);
+
+    const isMatched = authNumber === '1234'
+    
+    const test = isMatched ? '인증번호 확인' : '인증번호를 정확하게 입력해주세요.';
+    setAuthNumberMessage(test);
+    setIsAuthNumberMessage(!isSucced);
+    
   }
 
   
@@ -119,8 +184,12 @@ function App() {
       <SigninComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
       <SigninComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
       <SigninComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
-      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber}/>    
-    </div>
+      <SigninComponent  label='비밀번호 확인' type='text' placeholder='비밀번호를 입력해주세요' message={passwordPassMessage} messageError={ispasswordPassMessage} onchange={onPasswordPassChangeHandler} value={passwordPass}/>    
+      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber} buttonName='전화번호 인증' onClick={onClickTelNumberHandler}/>    
+      {isSend && 
+      <SigninComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증번호' onClick={onAuthNumberClickHandler}/>    
+      }
+      </div>
   );
 }
 interface Props {
