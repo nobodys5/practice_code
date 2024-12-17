@@ -83,8 +83,8 @@ function App() {
     const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
     const isSucced = pattern.test(value);
 
-    const check = passwordCheck === password;
-    const test = check ? '' : '비밀번호가 일치하지않습니다.';
+    const check = passwordPass === password;
+    const test = (isSucced || check) ? '' : '비밀번호가 일치하지않습니다.';
     setPasswordPassMessage(test);
     setIsPasswordPassMessage(!isSucced);
   }
@@ -189,6 +189,8 @@ function App() {
       {isSend && 
       <SigninComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증번호' onClick={onAuthNumberClickHandler}/>    
       }
+
+      <button>회원가입</button>
       </div>
   );
 }
