@@ -6,6 +6,7 @@ import { Route, Routes, } from 'react-router-dom';
 import axios from "axios";
 import { error } from 'console';
 import { Url } from 'url';
+import userEvent from '@testing-library/user-event';
 
 
 
@@ -18,7 +19,6 @@ function App() {
   const [telNumber, setTelNumber] = useState<string>('');
   const [authNumber, setAuthNumber] = useState<string>('');
 
-  const [passwordCheck, setPasswordCheck] = useState<string>('');
 
   const [idMessage, setIdMessage] = useState<string>('');
   const [passwordMessage, setPasswordMessage] = useState<string>('');
@@ -35,6 +35,9 @@ function App() {
 
 
   const [isSend, setSend] = useState<boolean>(false);
+  
+  const [isPasswordMatched, setPasswordMatched] = useState<boolean>(false);
+  
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -73,20 +76,40 @@ function App() {
     const isSucced = pattern.test(value);
     
 
-    const test = (isSucced || !value) ? '' : '8~13자리 영문,특수문자 포함입력해주세요';
+    if (!value) {
+      setPasswordMessage('');
+      return;
+    }
+    const test = isSucced ? '' : '8~13자리 영문,숫자 포함 입력하세요.';
     setPasswordMessage(test);
     setIsPasswordMessage(!isSucced);
+
+
+    if (!passwordPass) return;
+
+    const isEqual = passwordPass === value;
+    const checkMessage = isEqual ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
+    setPasswordPassMessage(checkMessage);
+    setIsPasswordPassMessage(!isEqual);
+    
   }
   const onPasswordPassChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+
     const { value } = event.target;
     setPasswordPass(value); 
-    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8,13}$/;
-    const isSucced = pattern.test(value);
+  
+    
+    if (!password) return;
+    const isMatched = password === value;
 
-    const check = passwordPass === password;
-    const test = (isSucced || check) ? '' : '비밀번호가 일치하지않습니다.';
+    if (!value) {
+      setPasswordPassMessage('');
+      return;
+    }
+   
+    const test = isMatched ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
     setPasswordPassMessage(test);
-    setIsPasswordPassMessage(!isSucced);
+    setIsPasswordPassMessage(!isMatched);
   }
 
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -135,6 +158,16 @@ function App() {
     setIsAuthNumberMessage(!isSucced);
     
   }
+  // useEffect(() => {
+  //   if (!password || !passwordPass) return; 
+
+  //   const isMatched = password === passwordPass;
+  //   const test = isMatched ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
+
+  //   setPasswordPassMessage(test);
+  //   setIsPasswordPassMessage(!isMatched);
+  //   setPasswordMatched(isMatched);
+  // }, [password, passwordPass])
 
   
   // 위의 props 객체와 동일한 내용의 객체를 아래에서 선언하여 원본 복사
