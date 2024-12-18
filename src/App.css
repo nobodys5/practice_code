@@ -42,11 +42,13 @@
   gap: 20px;
 }
 
-.primary {
-  width: 100px;
+
+
+.input-content .primary {
+  width: 80px;
   height: 30px;
   background-color: rgb(55, 245, 182);
-  color: rgb(55, 245, 182);
+  color: black;
   cursor: pointer;
 }
 .primarysecond {
@@ -54,7 +56,7 @@
 }
 
 .disable {
-  width: 100px;
+  width: 80px;
   color: black;
   height: 30px;
   background-color: rgb(214, 208, 208)
@@ -66,4 +68,6 @@
 
 .input-content {
   display: flex;
+  text-align: center;
+  line-height: 180%;
 }

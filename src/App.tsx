@@ -35,8 +35,12 @@ function App() {
 
 
   const [isSend, setSend] = useState<boolean>(false);
+  const [isAuthSend, setAuthSend] = useState<boolean>(false);
   
   const [isPasswordMatched, setPasswordMatched] = useState<boolean>(false);
+  const [isIdMatched, setIdMatched] = useState<boolean>(false);
+  const isComplete = isAuthSend && id && password && passwordPass && telNumber &&
+    isSend && isPasswordMatched && isIdMatched && name ;
   
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -57,16 +61,22 @@ function App() {
     const isSucced = pattern.test(id);
     
     if (!isSucced) {
-      setIdMessage("숫자,영문 포함 8자리 이내로 입력하세요.");
+      setIdMessage("숫자,영문 포함 4~8자리 이내로 입력하세요.");
       setIsIdMessage(true);
       return
     }
 
     const isDuplicated = id === 'qwer1234';
+    if (isDuplicated) {
+      setIdMessage('이미 사용중인 아이디입니다.');
+      setIsIdMessage(true)
+      setIdMatched(false);
+      return;
+    }
   
-    const test = isDuplicated ? '이미 사용중인 아이디입니다.' : "사용 가능한 아이디입니다."
-    setIdMessage(test);
-    setIsIdMessage(isDuplicated);
+    setIdMessage('사용 가능한 아이디입니다.');
+    setIsIdMessage(false);
+    setIdMatched(true);
   }
 
   const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -76,40 +86,23 @@ function App() {
     const isSucced = pattern.test(value);
     
 
-    if (!value) {
-      setPasswordMessage('');
-      return;
-    }
-    const test = isSucced ? '' : '8~13자리 영문,숫자 포함 입력하세요.';
+    
+    const test = (isSucced || !value) ? '' : '8~13자리 영문,숫자 포함 입력하세요.';
     setPasswordMessage(test);
     setIsPasswordMessage(!isSucced);
 
-
-    if (!passwordPass) return;
-
-    const isEqual = passwordPass === value;
-    const checkMessage = isEqual ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
-    setPasswordPassMessage(checkMessage);
-    setIsPasswordPassMessage(!isEqual);
+    
     
   }
   const onPasswordPassChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
 
     const { value } = event.target;
     setPasswordPass(value); 
-  
-    
-    if (!password) return;
-    const isMatched = password === value;
-
+   
     if (!value) {
       setPasswordPassMessage('');
       return;
     }
-   
-    const test = isMatched ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
-    setPasswordPassMessage(test);
-    setIsPasswordPassMessage(!isMatched);
   }
 
   const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -126,7 +119,7 @@ function App() {
     const isMatched = pattern.test(telNumber);
 
     if (!isMatched) {
-      setTelNumberMessage('11자리 숫자로 입력해주세요.')
+      setTelNumberMessage('11자리 이내 숫자로 입력해주세요.')
       setIsTelNumberMessage(true);
       return
     }; 
@@ -139,35 +132,66 @@ function App() {
 
   const onAuthNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
+    
     setAuthNumber(value); 
-    const pattern = /^(?=.*[0-9]).{4}$/;
-    const isSucced = pattern.test(value);
+    if (!value) {
+      setAuthNumberMessage('');
+      return;
+    } 
 
     
-    setIsAuthNumberMessage(!isSucced);
-    setAuthNumberMessage('');
   }
   const onAuthNumberClickHandler = () => {
-    const pattern = /^[0-9]{4}$/;
-    const isSucced = pattern.test(authNumber);
+    if (!authNumber) return;
 
     const isMatched = authNumber === '1234'
     
-    const test = isMatched ? '인증번호 확인' : '인증번호를 정확하게 입력해주세요.';
-    setAuthNumberMessage(test);
-    setIsAuthNumberMessage(!isSucced);
-    
+    if (!isMatched) {
+      setAuthNumberMessage('인증번호를 정확하게 입력해주세요.');
+      setIsAuthNumberMessage(true);
+      return;
+    }
+
+   
+    setAuthNumberMessage('인증번호 확인');
+    setIsAuthNumberMessage(false);
+    setAuthSend(true);
   }
-  // useEffect(() => {
-  //   if (!password || !passwordPass) return; 
 
-  //   const isMatched = password === passwordPass;
-  //   const test = isMatched ? '비밀번호가 일치합니다.' : '비밀번호가 일치하지 않습니다.';
+  const onSignupClickHandler = () => {
+    if (isComplete) {
+      alert("회원가입 성공");
 
-  //   setPasswordPassMessage(test);
-  //   setIsPasswordPassMessage(!isMatched);
-  //   setPasswordMatched(isMatched);
-  // }, [password, passwordPass])
+    } else if (!name) {
+      alert('이름을 입력해주세요.');
+    
+    } else if (!id) {
+      alert('아이디를 입력해주세요.');
+    
+    } else if (!password || !passwordPass) {
+      alert('비밀번호를 입력해주세요.');
+    
+    } else if (!telNumber) {
+      alert('전화번호를 입력해주세요.');
+    
+    } else if (!authNumber) {
+      alert('인증번호를 입력해주세요.');
+    } 
+
+  }
+
+  useEffect(() => {
+    if (!password || !passwordPass) return; 
+
+    
+    const isMatched = password === passwordPass;
+    const test = isMatched ? '' : '비밀번호가 일치하지 않습니다.';
+
+    setPasswordPassMessage(test);
+    setIsPasswordPassMessage(!isMatched);
+    setPasswordMatched(isMatched);
+
+  }, [password, passwordPass]);
 
   
   // 위의 props 객체와 동일한 내용의 객체를 아래에서 선언하여 원본 복사
@@ -218,12 +242,12 @@ function App() {
       <SigninComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
       <SigninComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
       <SigninComponent  label='비밀번호 확인' type='text' placeholder='비밀번호를 입력해주세요' message={passwordPassMessage} messageError={ispasswordPassMessage} onchange={onPasswordPassChangeHandler} value={passwordPass}/>    
-      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber} buttonName='전화번호 인증' onClick={onClickTelNumberHandler}/>    
+      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber} buttonName='인증번호' onClick={onClickTelNumberHandler}/>    
       {isSend && 
-      <SigninComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증번호' onClick={onAuthNumberClickHandler}/>    
+      <SigninComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증확인' onClick={onAuthNumberClickHandler}/>    
       }
 
-      <button>회원가입</button>
+      <button  onClick={onSignupClickHandler}>회원가입</button>
       </div>
   );
 }
@@ -237,9 +261,10 @@ interface Props {
   onchange: (event:ChangeEvent<HTMLInputElement>) => void;
   onClick?: () => void;
   value: string;
+  button?: boolean;
 }
 
-export function SigninComponent ({label, type, placeholder, message, messageError, buttonName, onchange,onClick, value}: Props) {
+export function SigninComponent ({label, type, placeholder, message, messageError, buttonName, onchange,onClick, value ,button}: Props) {
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
   const [idCheck, setIdCheck] = useState<boolean>(false);
@@ -289,7 +314,7 @@ export function SigninComponent ({label, type, placeholder, message, messageErro
       <div>{label}</div>
       <div className='input-content'>
         <input value={value} type={type} placeholder={placeholder} onChange={onchange}></input>
-        {buttonName && <div className={` ${value ? 'primary' : 'disable'}`} onClick={onClick}></div>}
+        {buttonName && <div className={` ${value ? 'primary' : 'disable'}`} onClick={onClick}>{buttonName}</div>}
       </div>
       <div className={` ${messageError ? 'error' : 'primarysecond'}`}>{message}</div>
     </div>
