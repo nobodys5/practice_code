@@ -44,11 +44,10 @@
 
 
 
-.input-content .primary {
+.primary {
   width: 80px;
   height: 30px;
   background-color: rgb(55, 245, 182);
-  color: black;
   cursor: pointer;
 }
 .primarysecond {
@@ -70,4 +69,65 @@
   display: flex;
   text-align: center;
   line-height: 180%;
+}
+
+.signin-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.button {
+  
+  width: 80px;
+  height: 30px;
+
+  text-align: center;
+  line-height: 180%;
+
+}
+
+.sign-in {
+  background-color: rgb(214, 208, 208);
+  width: 80px;
+  height: 30px;
+  text-align: center;
+  line-height: 180%;
+  
+}
+
+.signin-main {
+  display: flex;
+  flex-direction: column;
+  height: 10vw;
+  gap: 20px;
+}
+.signin-box {
+  background-color: rgb(214, 208, 208);
+  width: 80px;
+  height: 30px;
+  text-align: center;
+  line-height: 180%;
+}
+.signup-box {
+  background-color: rgb(214, 208, 208);
+  width: 80px;
+  height: 30px;
+  text-align: center;
+  line-height: 180%;
+}
+
+.sns-box {
+  display: flex;
+  gap: 30px;
+}
+
+.kakao,
+.naver
+{
+  width: 80px;
+  text-align: center;
+  line-height: 180%;
+  background-color: rgb(214, 208, 208);
+
 }

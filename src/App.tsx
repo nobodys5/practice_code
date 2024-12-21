@@ -8,9 +8,21 @@ import { error } from 'console';
 import { Url } from 'url';
 import userEvent from '@testing-library/user-event';
 
+type AuthPath = 'sign-in' | 'sign-up';
+interface Path {
+  type : AuthPath;
+}
 
+function SnSContainer ({type}: Path) {
+  return (
+    <div className='sns-box'>
+      <div className='kakao'>카카오</div>
+      <div className='naver'>네이버</div>
+    </div>
+  )
+}
 
-function App() {
+function Signup({onPathChange}: changeProps) {
   
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
@@ -40,7 +52,7 @@ function App() {
   const [isPasswordMatched, setPasswordMatched] = useState<boolean>(false);
   const [isIdMatched, setIdMatched] = useState<boolean>(false);
   const isComplete = isAuthSend && id && password && passwordPass && telNumber &&
-    isSend && isPasswordMatched && isIdMatched && name ;
+    isSend && isPasswordMatched && isIdMatched && name && authNumber ;
   
 
   const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +122,7 @@ function App() {
     setTelNumber(value); 
     setSend(false);
     setTelNumberMessage('');
+    setAuthNumber('');
   };
 
   const onClickTelNumberHandler = () => {
@@ -159,6 +172,8 @@ function App() {
   }
 
   const onSignupClickHandler = () => {
+    if (!isComplete) return;
+
     if (isComplete) {
       alert("회원가입 성공");
 
@@ -178,6 +193,7 @@ function App() {
       alert('인증번호를 입력해주세요.');
     } 
 
+    onPathChange('sign-in');
   }
 
   useEffect(() => {
@@ -238,20 +254,24 @@ function App() {
   
   return (
     <div>
-      <SigninComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
-      <SigninComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
-      <SigninComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
-      <SigninComponent  label='비밀번호 확인' type='text' placeholder='비밀번호를 입력해주세요' message={passwordPassMessage} messageError={ispasswordPassMessage} onchange={onPasswordPassChangeHandler} value={passwordPass}/>    
-      <SigninComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber} buttonName='인증번호' onClick={onClickTelNumberHandler}/>    
+      <SnSContainer type='sign-up'/>
+      <SignupComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
+      <SignupComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
+      <SignupComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
+      <SignupComponent  label='비밀번호 확인' type='text' placeholder='비밀번호를 입력해주세요' message={passwordPassMessage} messageError={ispasswordPassMessage} onchange={onPasswordPassChangeHandler} value={passwordPass}/>    
+      <SignupComponent  label='전화번호' type='text' placeholder='전화번호를 입력해주세요' message={telNumberMessage} messageError={isTelNumberMessage} onchange={onTelNumberChangeHandler} value={telNumber} buttonName='인증번호' onClick={onClickTelNumberHandler}/>    
       {isSend && 
-      <SigninComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증확인' onClick={onAuthNumberClickHandler}/>    
+      <SignupComponent  label='인증번호' type='text' placeholder='인증번호를 입력해주세요' message={authNumberMessage} messageError={isAuthNumberMessage} onchange={onAuthNumberChangeHandler} value={authNumber} buttonName='인증확인' onClick={onAuthNumberClickHandler}/>    
       }
 
-      <button  onClick={onSignupClickHandler}>회원가입</button>
+      <div className='signin-container'>
+        <div className={`button ${isComplete ? 'primary' : 'disable'}`} onClick={onSignupClickHandler}>회원가입</div>
+        <div className='sign-in' onClick={() => onPathChange('sign-in')}>로그인</div>
+      </div>
       </div>
   );
 }
-interface Props {
+interface SignupProps {
   label: string;
   type: 'text' | 'password';
   placeholder:string;
@@ -261,54 +281,12 @@ interface Props {
   onchange: (event:ChangeEvent<HTMLInputElement>) => void;
   onClick?: () => void;
   value: string;
-  button?: boolean;
 }
 
-export function SigninComponent ({label, type, placeholder, message, messageError, buttonName, onchange,onClick, value ,button}: Props) {
-  const [name, setName] = useState<string>('');
-  const [id, setId] = useState<string>('');
-  const [idCheck, setIdCheck] = useState<boolean>(false);
 
-  const [password, setPassword] = useState<string>('');
-  const [passwordMessage, setPasswordMessage] = useState<string>('');
-  const [ispasswordMessage, setIsPasswordMessage] = useState<boolean>(false);
-  
-  const [telNumber, setTelNumber] = useState<string>('');
-  const [telNumberMessage, setTelNumberMessage] = useState<string>('');
-  const [isTelNumberMessage, setIsTelNumberMessage] = useState<boolean>(false);
+export function SignupComponent ({label, type, placeholder, message, messageError, buttonName, onchange,onClick, value}: SignupProps) {
 
-  const onNameChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    setName(value); 
-  }
-  const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    
-    setIdCheck(idCheck);
-    setId(value); 
-  }
-  const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-    const pattern = /^(?=.*[a-zA-Z])(?=.*[0-9]).{8~13}$/
-    const isSucced = pattern.test(value);
-    setPassword(value); 
-
-    const test = (isSucced || !value) ? '' : '8~13자리를 입력해주세요.';
-    setPasswordMessage(test);
-    setIsPasswordMessage(isSucced);
-  }
-  
-  const onTelNumberChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
-    const { value } = event.target;
-
-    const pattern = /^(?=.*[0-9]).{11}$/
-    const isSucced = pattern.test(value);
-    setTelNumber(value); 
-
-    const test = (isSucced || !value) ? '' : '중복된 전화번호입니다.';
-    setTelNumberMessage(test);
-    setIsTelNumberMessage(isSucced);
-  }
+ 
   return(
     <div>
       <div>{label}</div>
@@ -320,5 +298,61 @@ export function SigninComponent ({label, type, placeholder, message, messageErro
     </div>
   )
 }
-export default App;
 
+
+export function SignIn ({onPathChange}: changeProps) {
+
+  const [id, setId] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+
+  const [message, setMessage] = useState<string>('');
+
+
+  const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setId(value);
+  }
+  const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
+    const { value } = event.target;
+    setPassword(value);
+  }
+
+  useEffect (() => {
+    setMessage('');
+  }, [id, password])  
+
+  return(
+    <div>
+      <SignupComponent label='아이디' type='text' placeholder='아이디를 입력해주세요.' message='' messageError value={id} onchange={onIdChangeHandler}/>
+      <SignupComponent label='비밀번호' type='text' placeholder='비밀번호호를 입력해주세요.' message={message} messageError value={password} onchange={onPasswordChangeHandler}/>
+      <div className='signin-main'>
+        <div className='signin-box'>로그인</div>
+        <div className='signup-box' onClick={() => onPathChange('sign-up')}>회원가입</div>
+      </div>
+
+        <SnSContainer type='sign-in'/>
+    </div>
+  )
+}
+
+interface changeProps {
+  onPathChange: (path: AuthPath) => void;
+}
+export default function Auth () {
+  const [path, setPath] = useState<AuthPath>('sign-in');
+
+  const onPathChangeHandler = (path:AuthPath) => {
+    setPath(path);
+  }
+
+  return (
+    <div>
+    {path === 'sign-in' ? 
+    <SignIn onPathChange={onPathChangeHandler}/>
+    :
+    <Signup onPathChange={onPathChangeHandler}/> 
+    }
+    
+    </div>
+  )
+}
