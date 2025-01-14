@@ -2,18 +2,25 @@ import React, { ChangeEvent, Component, MouseEvent, useEffect, useState } from '
 import './App.css';
 import ComponentTest from './ComponentTest';
 import { on } from 'events';
-import { Route, Routes, } from 'react-router-dom';
+import { Route, Routes, useNavigate, } from 'react-router-dom';
 import axios from "axios";
 import { error } from 'console';
 import { Url } from 'url';
 import userEvent from '@testing-library/user-event';
+import { useCookies } from 'react-cookie';
+import { tab } from '@testing-library/user-event/dist/tab';
+import MainLayout from './layouts/MainLayout';
+import path from 'path';
+import { ACCESS_TOKEN, AUTH_APSOLUTE_PATH, AUTH_PATH, CS_APSOLUTE_PATH, CS_DETAIL_PATH, CS_PATH, CS_UPDATE_PATH, CS_WRITE_PATH, HR_PATH, MM_PATH } from './constants';
+import CS from './views/CS';
+import { write } from 'fs';
+import CSWrite from './views/Write';
+import CSDetail from './views/Detail';
 
 type AuthPath = 'sign-in' | 'sign-up';
-interface Path {
-  type : AuthPath;
-}
 
-function SnSContainer ({type}: Path) {
+
+function SnSContainer () {
   return (
     <div className='sns-box'>
       <div className='kakao'>카카오</div>
@@ -254,7 +261,7 @@ function Signup({onPathChange}: changeProps) {
   
   return (
     <div>
-      <SnSContainer type='sign-up'/>
+      <SnSContainer/>
       <SignupComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
       <SignupComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
       <SignupComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
@@ -265,8 +272,8 @@ function Signup({onPathChange}: changeProps) {
       }
 
       <div className='signin-container'>
-        <div className={`button ${isComplete ? 'primary' : 'disable'}`} onClick={onSignupClickHandler}>회원가입</div>
-        <div className='sign-in' onClick={() => onPathChange('sign-in')}>로그인</div>
+        <div className={`button ${isComplete ? 'primary' : 'disable'}`} onClick={onSignupClickHandler} style={{cursor:'pointer'}}>회원가입</div>
+        <div className='sign-in' onClick={() => onPathChange('sign-in')} style={{cursor:'pointer'}}>로그인</div>
       </div>
       </div>
   );
@@ -301,11 +308,16 @@ export function SignupComponent ({label, type, placeholder, message, messageErro
 
 
 export function SignIn ({onPathChange}: changeProps) {
+  const navigator = useNavigate();
+  const [cookies, setCookies] = useCookies();
+  const [name, setName] = useState<string>('accessToken');
+  const [value, setValue] = useState<string>('cookie');
 
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
 
-  const [message, setMessage] = useState<string>('');
+  const [idmessage, setIdMessage] = useState<string>('');
+  const [passwordmessage, setPasswordMessage] = useState<string>('');
 
 
   const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -317,20 +329,37 @@ export function SignIn ({onPathChange}: changeProps) {
     setPassword(value);
   }
 
+  const onSignInButtonHandler = () => {
+
+    if (id !== 'qwer1234') {
+      setIdMessage('아이디가 일치하지 않습니다.');
+      return;
+    } else if (password !== 'qwer1234') {
+      setPasswordMessage('비밀번호가 일치하지 않습니다.');
+      return;
+    }
+
+    alert('로그인 성공');
+    setCookies('accessToken' , {path : '/cs'});
+    navigator('/cs');
+    
+  }
+
   useEffect (() => {
-    setMessage('');
+    setIdMessage('');
+    setPasswordMessage('');
   }, [id, password])  
 
   return(
     <div>
-      <SignupComponent label='아이디' type='text' placeholder='아이디를 입력해주세요.' message='' messageError value={id} onchange={onIdChangeHandler}/>
-      <SignupComponent label='비밀번호' type='text' placeholder='비밀번호호를 입력해주세요.' message={message} messageError value={password} onchange={onPasswordChangeHandler}/>
+      <SignupComponent label='아이디' type='text' placeholder='아이디를 입력해주세요.' message={idmessage} messageError value={id} onchange={onIdChangeHandler}/>
+      <SignupComponent label='비밀번호' type='text' placeholder='비밀번호호를 입력해주세요.' message={passwordmessage} messageError value={password} onchange={onPasswordChangeHandler}/>
       <div className='signin-main'>
-        <div className='signin-box'>로그인</div>
-        <div className='signup-box' onClick={() => onPathChange('sign-up')}>회원가입</div>
+        <div className='signin-box' onClick={onSignInButtonHandler} style={{cursor:'pointer'}}>로그인</div>
+        <div className='signup-box' onClick={() => onPathChange('sign-up')} style={{cursor:'pointer'}}>회원가입</div>
       </div>
 
-        <SnSContainer type='sign-in'/>
+        <SnSContainer/>
     </div>
   )
 }
@@ -338,7 +367,8 @@ export function SignIn ({onPathChange}: changeProps) {
 interface changeProps {
   onPathChange: (path: AuthPath) => void;
 }
-export default function Auth () {
+export default function Auth () { 
+
   const [path, setPath] = useState<AuthPath>('sign-in');
 
   const onPathChangeHandler = (path:AuthPath) => {
@@ -353,6 +383,49 @@ export default function Auth () {
     <Signup onPathChange={onPathChangeHandler}/> 
     }
     
+   
     </div>
+  )
+}
+
+export function Router() {
+  return (
+    <div>
+       <Routes>
+      <Route index element={<Index/>}></Route>
+      <Route path={AUTH_PATH} element={<Auth/>}></Route>
+      <Route path={CS_PATH} element={<MainLayout/>}>
+        <Route index element={<CS />}></Route>
+        <Route path={CS_WRITE_PATH} element={<CSWrite />}></Route>
+        <Route path={CS_DETAIL_PATH(':customNumber')} element={<CSDetail/>}></Route>
+        <Route path={CS_UPDATE_PATH(':customNumber')} element={<>고객 관리</>}></Route>
+      </Route>
+      <Route path={MM_PATH} element={<MainLayout/>}>
+        <Route path='write' element={<>글 작성</>}></Route>
+        <Route path=':customnumber' element={<>글 넘버</>}></Route>
+        <Route path=':customnumber/update' element={<>글 수정</>}></Route>
+      </Route>
+      <Route path={HR_PATH} element={<MainLayout/>}>
+        <Route path='write' element={<>글 작성</>}></Route>
+        <Route path=':customnumber' element={<>글 넘버</>}></Route>
+        <Route path=':customnumber/update' element={<>글 수정</>}></Route>
+      </Route>
+      <Route path='*' element={<Index/>}></Route>
+    </Routes>
+    </div>
+  )
+}
+
+export function Index () {
+  const [cookies] = useCookies();
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if(cookies[ACCESS_TOKEN]) navigate(CS_APSOLUTE_PATH);
+    else navigate(AUTH_APSOLUTE_PATH);  
+  }, []);
+  return (
+    <></>
   )
 }

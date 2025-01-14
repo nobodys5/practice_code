@@ -1,0 +1,56 @@
+#main-layout {
+    display: grid;
+    grid-template: 
+        "logo top" 77px 
+        "left main" minmax(944px, auto) 
+        / 257px minmax(1182px , 100%) 
+    ;
+}
+
+#logo-layout{
+    grid-area: logo;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    border-bottom: 1px solid gray;
+    border-right: 1px solid gray;
+}
+
+#top-layout{
+    grid-area: top;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    padding: 0 24px;
+}
+
+.signout {
+    border: 1px solid gray;
+    background-color: chartreuse;
+    color: green;
+    padding: 5px;
+
+    cursor: pointer;
+}
+
+#left-layout{
+    grid-area: left;
+}
+
+#left-layout .navigation {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#left-layout .navigation.active {
+
+    background-color: wheat;
+}
+
+#left-layout .left-text:hover {
+    cursor: pointer;
+    background-color: green;
+}
