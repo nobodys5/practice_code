@@ -2,7 +2,7 @@ import React, { ChangeEvent, Component, MouseEvent, useEffect, useState } from '
 import './App.css';
 import ComponentTest from './ComponentTest';
 import { on } from 'events';
-import { Route, Routes, useNavigate, } from 'react-router-dom';
+import { Route, Routes, useNavigate, useSearchParams, } from 'react-router-dom';
 import axios from "axios";
 import { error } from 'console';
 import { Url } from 'url';
@@ -11,7 +11,7 @@ import { useCookies } from 'react-cookie';
 import { tab } from '@testing-library/user-event/dist/tab';
 import MainLayout from './layouts/MainLayout';
 import path from 'path';
-import { ACCESS_TOKEN, AUTH_APSOLUTE_PATH, AUTH_PATH, CS_APSOLUTE_PATH, CS_DETAIL_PATH, CS_PATH, CS_UPDATE_PATH, CS_WRITE_PATH, HR_PATH, MM_PATH } from './constants';
+import { ACCESS_TOKEN, AUTH_APSOLUTE_PATH, AUTH_PATH, CS_APSOLUTE_PATH, CS_DETAIL_PATH, CS_PATH, CS_UPDATE_PATH, CS_WRITE_PATH, HR_PATH, MM_PATH, ROOT_PATH, SNS_SUCCESS_PATH } from './constants';
 import CS from './views/CS';
 import { write } from 'fs';
 import CSWrite from './views/Write';
@@ -20,11 +20,44 @@ import CSDetail from './views/Detail';
 type AuthPath = 'sign-in' | 'sign-up';
 
 
+// component: Sns success 컴포넌트 //
+function SnsSuccess() {
+
+  // state: Query Parameter 상태 //
+  const [queryParam] = useSearchParams();
+  const accessToken = queryParam.get('accessToken');
+  const expiration = queryParam.get('expiration');
+
+  // state : cookie 상태 //
+  const [cookies, setCookie] = useCookies();
+
+  // function: 네비게이터 함수 //
+  const navigator = useNavigate();
+  // effect: Sns Success 컴포넌트 로드시 accessToken과 expiration을 확인하여 로그인 처리 함수//
+  useEffect(() => {
+    if (accessToken && expiration) {
+        const expires = new Date(Date.now() + (Number(expiration) + 10));
+        setCookie(ACCESS_TOKEN, accessToken, { path: ROOT_PATH, expires});
+
+        navigator(CS_APSOLUTE_PATH);
+    } 
+    else navigator(AUTH_APSOLUTE_PATH);
+  }, []);
+  return(
+    <></>
+  )
+}
 function SnSContainer () {
+   // event handler: SNS 버튼 클릭 이벤트 처리 //
+   const onSnsButtonClickHandler = (sns: 'kakao' | 'naver') => {
+    window.location.href = `http://localhost:4040/api/v1/auth/sns-sign-in/${sns}`;
+  }
+
+  
   return (
     <div className='sns-box'>
-      <div className='kakao'>카카오</div>
-      <div className='naver'>네이버</div>
+      <div className='kakao' onClick={() => onSnsButtonClickHandler('kakao')}>카카오</div>
+      <div className='naver' onClick={() => onSnsButtonClickHandler('naver')}>네이버</div>
     </div>
   )
 }
@@ -410,6 +443,7 @@ export function Router() {
         <Route path=':customnumber' element={<>글 넘버</>}></Route>
         <Route path=':customnumber/update' element={<>글 수정</>}></Route>
       </Route>
+      <Route path={SNS_SUCCESS_PATH} element={<SnsSuccess/>}></Route>
       <Route path='*' element={<Index/>}></Route>
     </Routes>
     </div>

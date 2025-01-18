@@ -10,6 +10,7 @@ export const HR_PATH = '/hr';
 export const HR_DETAIL_PATH = (userId: string | number ) => `${userId}`;
 export const HR_UPDATE_PATH = (userId: string | number ) => `${userId}/update`;
 export const OTHERS_PATH = '*';
+export const SNS_SUCCESS_PATH = '/sns-success';
 
 // variable: 절대 경로 상수 //
 export const ROOT_APSOLUTE_PATH = ROOT_PATH;
