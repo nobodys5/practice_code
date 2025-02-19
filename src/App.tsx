@@ -16,6 +16,11 @@ import CS from './views/CS';
 import { write } from 'fs';
 import CSWrite from './views/Write';
 import CSDetail from './views/Detail';
+import IdCheckRequestDto from './apis/dto/request/auth/id-check.request.dto';
+import { IdCheckRequest, signInRequest, signUpRequest, telAuthCheckRequest, telAuthRequest } from './apis';
+import { ResponseDto } from './apis/dto/response';
+import { SignInRequestDto, SignUPRequestDto, TelAuthCheckRequestDto, TelAuthRequestDto } from './apis/dto/request/auth';
+import { SignInResponseDto } from './apis/dto/response/auth';
 
 type AuthPath = 'sign-in' | 'sign-up';
 
@@ -89,6 +94,73 @@ function Signup({onPathChange}: changeProps) {
   const [isSend, setSend] = useState<boolean>(false);
   const [isAuthSend, setAuthSend] = useState<boolean>(false);
   
+  
+
+  const idCheckResponse = (responseBody: ResponseDto | null) => {
+
+    const message = 
+    !responseBody ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'VF' ? '올바른 데이터가 아닙니다.' :
+     responseBody.code === 'DI' ? '이미 사용중인인 아이디입니다.' :
+     responseBody.code === 'DBE' ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'SU' ? '사용 가능한 아이디 입니다.' : '';
+     
+     const isSuccessed = responseBody !== null && responseBody.code === 'SU';
+     setIdMessage(message);
+     setIsIdMessage(!isSuccessed);
+     setIdMatched(isSuccessed);
+     console.log(message)
+   }; 
+
+  const telAuthResponse = (responseBody: ResponseDto | null) => {
+
+    const message = 
+    !responseBody ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'VF' ? '숫자 11자리 입력해주세요.' :
+     responseBody.code === 'DT' ? '이미 사용중인 전화번호입니다.' :
+     responseBody.code === 'TF' ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'DBE' ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'SU' ? '사용 가능한 전화번호 입니다.' : '';
+     
+     const isSuccessed = responseBody !== null && responseBody.code === 'SU';
+     setTelNumberMessage(message);
+     setIsTelNumberMessage(!isSuccessed);
+     setSend(isSuccessed);
+   }; 
+
+  const telAuthCheckResponse = (responseBody: ResponseDto | null) => {
+
+    const message = 
+    !responseBody ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'VF' ? '올바른 데이터가 아닙니다.' :
+     responseBody.code === 'TAF' ? '인증번호를 정확하게 입력해주세요.' :
+     responseBody.code === 'DBE' ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'SU' ? '전화번호 인증 완료.' : '';
+     
+     const isSuccessed = responseBody !== null && responseBody.code === 'SU';
+     setAuthNumberMessage(message);
+     setIsAuthNumberMessage(!isSuccessed);
+     setAuthSend(isSuccessed);
+   }; 
+  const SignupResponse = (responseBody: ResponseDto | null) => {
+
+    const message = 
+    !responseBody ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'VF' ? '올바른 데이터가 아닙니다.' :
+     responseBody.code === 'DI' ? '중복된 아이디 입니다.' :
+     responseBody.code === 'DT' ? '중복된 전화번호 입니다.' :
+     responseBody.code === 'TAF' ? '인증번호가 일치하지 않습니다.' :
+     responseBody.code === 'SU' ? '회원가입 완료.' : '';
+     
+     const isSuccessed = responseBody !== null && responseBody.code === 'SU';
+    
+    if (!isSuccessed) {
+      alert(message);
+      return;
+    }
+     onPathChange('sign-in');
+   }; 
+
   const [isPasswordMatched, setPasswordMatched] = useState<boolean>(false);
   const [isIdMatched, setIdMatched] = useState<boolean>(false);
   const isComplete = isAuthSend && id && password && passwordPass && telNumber &&
@@ -117,18 +189,23 @@ function Signup({onPathChange}: changeProps) {
       setIsIdMessage(true);
       return
     }
-
-    const isDuplicated = id === 'qwer1234';
-    if (isDuplicated) {
-      setIdMessage('이미 사용중인 아이디입니다.');
-      setIsIdMessage(true)
-      setIdMatched(false);
-      return;
-    }
+    
+    const requestBody :IdCheckRequestDto = {
+      userId: id
+    };
+    IdCheckRequest(requestBody).then(idCheckResponse);
+   
+    // const isDuplicated = id === 'qwer1234';
+    // if (isDuplicated) {
+    //   setIdMessage('이미 사용중인 아이디입니다.');
+    //   setIsIdMessage(true)
+    //   setIdMatched(false);
+    //   return;
+    // }
   
-    setIdMessage('사용 가능한 아이디입니다.');
-    setIsIdMessage(false);
-    setIdMatched(true);
+    // setIdMessage('사용 가능한 아이디입니다.');
+    // setIsIdMessage(false);
+    // setIdMatched(true);
   }
 
   const onPasswordChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
@@ -171,15 +248,18 @@ function Signup({onPathChange}: changeProps) {
     const pattern = /^[0-9]{11}$/;
     const isMatched = pattern.test(telNumber);
 
+    
     if (!isMatched) {
       setTelNumberMessage('11자리 이내 숫자로 입력해주세요.')
       setIsTelNumberMessage(true);
-      return
+      return;
     }; 
-
-    setTelNumberMessage('인증번호 전송');
-    setIsTelNumberMessage(false);
-    setSend(true);
+    
+    const requestBody : TelAuthRequestDto = { telNumber };
+    telAuthRequest(requestBody).then(telAuthResponse);
+    // setTelNumberMessage('인증번호 전송');
+    // setIsTelNumberMessage(false);
+    // setSend(true);
     
   }
 
@@ -197,43 +277,57 @@ function Signup({onPathChange}: changeProps) {
   const onAuthNumberClickHandler = () => {
     if (!authNumber) return;
 
-    const isMatched = authNumber === '1234'
+    // const isMatched = authNumber === '1234'
     
-    if (!isMatched) {
-      setAuthNumberMessage('인증번호를 정확하게 입력해주세요.');
-      setIsAuthNumberMessage(true);
-      return;
-    }
+    // if (!isMatched) {
+    //   setAuthNumberMessage('인증번호를 정확하게 입력해주세요.');
+    //   setIsAuthNumberMessage(true);
+    //   return;
+    // }
 
-   
-    setAuthNumberMessage('인증번호 확인');
-    setIsAuthNumberMessage(false);
-    setAuthSend(true);
+    const requestBody: TelAuthCheckRequestDto ={
+      telNumber,
+      authNumber
+    }
+    telAuthCheckRequest(requestBody).then(telAuthCheckResponse);
+
+    // setAuthNumberMessage('인증번호 확인');
+    // setIsAuthNumberMessage(false);
+    // setAuthSend(true);
   }
 
   const onSignupClickHandler = () => {
     if (!isComplete) return;
 
-    if (isComplete) {
-      alert("회원가입 성공");
+  const requestBody: SignUPRequestDto = {
+    name,
+    userId: id,
+    password,
+    telNumber,
+    authNumber,
+    joinPath: 'home'
+  }
+   signUpRequest(requestBody).then(SignupResponse);
+    // if (isComplete) {
+    //   alert("회원가입 성공");
 
-    } else if (!name) {
-      alert('이름을 입력해주세요.');
+    // } else if (!name) {
+    //   alert('이름을 입력해주세요.');
     
-    } else if (!id) {
-      alert('아이디를 입력해주세요.');
+    // } else if (!id) {
+    //   alert('아이디를 입력해주세요.');
     
-    } else if (!password || !passwordPass) {
-      alert('비밀번호를 입력해주세요.');
+    // } else if (!password || !passwordPass) {
+    //   alert('비밀번호를 입력해주세요.');
     
-    } else if (!telNumber) {
-      alert('전화번호를 입력해주세요.');
+    // } else if (!telNumber) {
+    //   alert('전화번호를 입력해주세요.');
     
-    } else if (!authNumber) {
-      alert('인증번호를 입력해주세요.');
-    } 
+    // } else if (!authNumber) {
+    //   alert('인증번호를 입력해주세요.');
+    // } 
 
-    onPathChange('sign-in');
+    // onPathChange('sign-in');
   }
 
   useEffect(() => {
@@ -351,7 +445,29 @@ export function SignIn ({onPathChange}: changeProps) {
 
   const [idmessage, setIdMessage] = useState<string>('');
   const [passwordmessage, setPasswordMessage] = useState<string>('');
+  
+  const [message, setMessage] = useState<string>('');
 
+  const SignInResponse = (responseBody: SignInResponseDto | ResponseDto | null) => {
+
+    const message = 
+    !responseBody ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'VF' ? '아이디와 비밀번호를 모두 입력하세요.' :
+     responseBody.code === 'SF' ? '로그인 정보가 일치하지 않습니다다.' :
+     responseBody.code === 'DBE' ? '서버에 문제가 있습니다.' :
+     responseBody.code === 'TCF' ? '서버에 문제가 있습니다.' : '';
+     
+     const isSuccessed = responseBody !== null && responseBody.code === 'SU';
+     if (!isSuccessed) {
+      setMessage(message);
+      return;
+     }
+     const { accessToken, expiration } = responseBody as SignInResponseDto;
+     const expires = new Date(Date.now() + (expiration * 1000));
+     setCookies(ACCESS_TOKEN, accessToken, {path : ROOT_PATH, expires});
+
+     navigator(CS_APSOLUTE_PATH);
+   };
 
   const onIdChangeHandler = (event:ChangeEvent<HTMLInputElement>) => {
     const { value } = event.target;
@@ -363,18 +479,24 @@ export function SignIn ({onPathChange}: changeProps) {
   }
 
   const onSignInButtonHandler = () => {
-
-    if (id !== 'qwer1234') {
-      setIdMessage('아이디가 일치하지 않습니다.');
-      return;
-    } else if (password !== 'qwer1234') {
-      setPasswordMessage('비밀번호가 일치하지 않습니다.');
-      return;
+    if (!id || !password) return;
+    
+    const requestBody : SignInRequestDto = {
+      userId : id,
+      password
     }
+    signInRequest(requestBody).then(SignInResponse);
+    // if (id !== 'qwer1234') {
+    //   setIdMessage('아이디가 일치하지 않습니다.');
+    //   return;
+    // } else if (password !== 'qwer1234') {
+    //   setPasswordMessage('비밀번호가 일치하지 않습니다.');
+    //   return;
+    // }
 
-    alert('로그인 성공');
-    setCookies('accessToken' , {path : '/cs'});
-    navigator('/cs');
+    // alert('로그인 성공');
+    // setCookies('accessToken' , {path : '/cs'});
+    // navigator('/cs');
     
   }
 
@@ -386,7 +508,7 @@ export function SignIn ({onPathChange}: changeProps) {
   return(
     <div>
       <SignupComponent label='아이디' type='text' placeholder='아이디를 입력해주세요.' message={idmessage} messageError value={id} onchange={onIdChangeHandler}/>
-      <SignupComponent label='비밀번호' type='text' placeholder='비밀번호호를 입력해주세요.' message={passwordmessage} messageError value={password} onchange={onPasswordChangeHandler}/>
+      <SignupComponent label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요.' message={passwordmessage} messageError value={password} onchange={onPasswordChangeHandler}/>
       <div className='signin-main'>
         <div className='signin-box' onClick={onSignInButtonHandler} style={{cursor:'pointer'}}>로그인</div>
         <div className='signup-box' onClick={() => onPathChange('sign-up')} style={{cursor:'pointer'}}>회원가입</div>
