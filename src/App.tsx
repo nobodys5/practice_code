@@ -7,20 +7,22 @@ import axios from "axios";
 import { error } from 'console';
 import { Url } from 'url';
 import userEvent from '@testing-library/user-event';
-import { useCookies } from 'react-cookie';
+import { Cookies, useCookies } from 'react-cookie';
 import { tab } from '@testing-library/user-event/dist/tab';
 import MainLayout from './layouts/MainLayout';
-import path from 'path';
+import path, { join } from 'path';
 import { ACCESS_TOKEN, AUTH_APSOLUTE_PATH, AUTH_PATH, CS_APSOLUTE_PATH, CS_DETAIL_PATH, CS_PATH, CS_UPDATE_PATH, CS_WRITE_PATH, HR_PATH, MM_PATH, ROOT_PATH, SNS_SUCCESS_PATH } from './constants';
 import CS from './views/CS';
 import { write } from 'fs';
 import CSWrite from './views/Write';
 import CSDetail from './views/Detail';
 import IdCheckRequestDto from './apis/dto/request/auth/id-check.request.dto';
-import { IdCheckRequest, signInRequest, signUpRequest, telAuthCheckRequest, telAuthRequest } from './apis';
+import { getsignInRequest, IdCheckRequest, signInRequest, signUpRequest, telAuthCheckRequest, telAuthRequest } from './apis';
 import { ResponseDto } from './apis/dto/response';
 import { SignInRequestDto, SignUPRequestDto, TelAuthCheckRequestDto, TelAuthRequestDto } from './apis/dto/request/auth';
 import { SignInResponseDto } from './apis/dto/response/auth';
+import { GetSignInResponseDto } from './apis/dto/response/nurse';
+import { useSignInUserStore } from './stores';
 
 type AuthPath = 'sign-in' | 'sign-up';
 
@@ -47,6 +49,7 @@ function SnsSuccess() {
         navigator(CS_APSOLUTE_PATH);
     } 
     else navigator(AUTH_APSOLUTE_PATH);
+    
   }, []);
   return(
     <></>
@@ -69,6 +72,10 @@ function SnSContainer () {
 
 function Signup({onPathChange}: changeProps) {
   
+  const [queryParam] = useSearchParams();
+  const snsId = queryParam.get('snsId');
+  const joinPath = queryParam.get('joinPath');
+
   const [name, setName] = useState<string>('');
   const [id, setId] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -94,7 +101,7 @@ function Signup({onPathChange}: changeProps) {
   const [isSend, setSend] = useState<boolean>(false);
   const [isAuthSend, setAuthSend] = useState<boolean>(false);
   
-  
+  const isSnsSignup = snsId !== null && joinPath !== null;
 
   const idCheckResponse = (responseBody: ResponseDto | null) => {
 
@@ -305,29 +312,11 @@ function Signup({onPathChange}: changeProps) {
     password,
     telNumber,
     authNumber,
-    joinPath: 'home'
+    joinPath: joinPath ? joinPath : 'home',
+    snsId
   }
    signUpRequest(requestBody).then(SignupResponse);
-    // if (isComplete) {
-    //   alert("회원가입 성공");
-
-    // } else if (!name) {
-    //   alert('이름을 입력해주세요.');
     
-    // } else if (!id) {
-    //   alert('아이디를 입력해주세요.');
-    
-    // } else if (!password || !passwordPass) {
-    //   alert('비밀번호를 입력해주세요.');
-    
-    // } else if (!telNumber) {
-    //   alert('전화번호를 입력해주세요.');
-    
-    // } else if (!authNumber) {
-    //   alert('인증번호를 입력해주세요.');
-    // } 
-
-    // onPathChange('sign-in');
   }
 
   useEffect(() => {
@@ -388,7 +377,8 @@ function Signup({onPathChange}: changeProps) {
   
   return (
     <div>
-      <SnSContainer/>
+
+      {!isSnsSignup && <SnSContainer/>}
       <SignupComponent  label='이름' type='text' placeholder='이름을 입력해주세요' message={''} messageError={isNameMessage} onchange={onNameChangeHandler} value={name} />    
       <SignupComponent  label='아이디' type='text' placeholder='아이디를 입력해주세요' message={idMessage} messageError={isidMessage} onchange={onIdChangeHandler} value={id} buttonName='중복확인' onClick={onIdClickHandler}/>    
       <SignupComponent  label='비밀번호' type='text' placeholder='비밀번호를 입력해주세요' message={passwordMessage} messageError={ispasswordMessage} onchange={onPasswordChangeHandler} value={password}/>    
@@ -524,11 +514,21 @@ interface changeProps {
 }
 export default function Auth () { 
 
+  const navigator = useNavigate();
+  const [queryParam] = useSearchParams();
+  const snsId = queryParam.get('snsId');
+  const joinPath = queryParam.get('joinPath');
   const [path, setPath] = useState<AuthPath>('sign-in');
 
   const onPathChangeHandler = (path:AuthPath) => {
     setPath(path);
   }
+  
+  useEffect(() => {
+    if (snsId && joinPath) setPath('sign-up');
+      
+
+  }, [])
 
   return (
     <div>
@@ -544,6 +544,36 @@ export default function Auth () {
 }
 
 export function Router() {
+  const { signInUser, setSignInUser} = useSignInUserStore();
+
+  const [Cookies, setCookie, removeCookie] = useCookies();
+  const navigator = useNavigate();
+  const getsignInResponse = (responseBody: GetSignInResponseDto | ResponseDto | null) => {
+    const message = 
+      !responseBody ? '로그인 유저 정보를 불러오는데 문제가 발생했습니다.' :
+      responseBody.code === 'NI' ? '로그인 유저 정보보가 존재하지 않습니다.' :
+      responseBody.code === 'AF' ? '잘못된 접근입니다.' :
+      responseBody.code === 'DBE' ? '로그인 우저 정보를 불러오는데 실패했습니다.' : ''
+     const isSuccessed = responseBody !== null &&  responseBody.code === 'SU';
+
+     if (!isSuccessed) {
+      alert(message);
+      removeCookie(ACCESS_TOKEN, {path : ROOT_PATH});
+      setSignInUser(null);
+      navigator(AUTH_APSOLUTE_PATH);
+      return;
+     }
+
+     const { userId, name, telNumber } = responseBody as GetSignInResponseDto;
+     setSignInUser({ userId, name, telNumber });
+  }
+  useEffect(() => {
+    const accessToken = Cookies[ACCESS_TOKEN];
+    if (accessToken)  getsignInRequest(accessToken).then(getsignInResponse);
+    else setSignInUser(null);
+    
+  }, [Cookies[ACCESS_TOKEN]])
+  
   return (
     <div>
        <Routes>
@@ -585,3 +615,5 @@ export function Index () {
     <></>
   )
 }
+
+
