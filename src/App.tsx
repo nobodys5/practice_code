@@ -23,6 +23,8 @@ import { SignInRequestDto, SignUPRequestDto, TelAuthCheckRequestDto, TelAuthRequ
 import { SignInResponseDto } from './apis/dto/response/auth';
 import { GetSignInResponseDto } from './apis/dto/response/nurse';
 import { useSignInUserStore } from './stores';
+import MM from './views/MM';
+import HR from './views/HR';
 
 type AuthPath = 'sign-in' | 'sign-up';
 
@@ -567,13 +569,21 @@ export function Router() {
      const { userId, name, telNumber } = responseBody as GetSignInResponseDto;
      setSignInUser({ userId, name, telNumber });
   }
-  useEffect(() => {
-    const accessToken = Cookies[ACCESS_TOKEN];
-    if (accessToken)  getsignInRequest(accessToken).then(getsignInResponse);
-    else setSignInUser(null);
-    
-  }, [Cookies[ACCESS_TOKEN]])
-  
+  const [accessToken, setAccessToken] = useState(Cookies[ACCESS_TOKEN]);
+
+useEffect(() => {
+  if (accessToken) {
+    getsignInRequest(accessToken).then(getsignInResponse);
+  } else {
+    setSignInUser(null);
+  }
+}, [accessToken]);
+
+// 토큰이 변경될 때마다 상태 업데이트
+useEffect(() => {
+  const token = Cookies[ACCESS_TOKEN];
+  setAccessToken(token);
+}, []);
   return (
     <div>
        <Routes>
@@ -585,12 +595,12 @@ export function Router() {
         <Route path={CS_DETAIL_PATH(':customNumber')} element={<CSDetail/>}></Route>
         <Route path={CS_UPDATE_PATH(':customNumber')} element={<>고객 관리</>}></Route>
       </Route>
-      <Route path={MM_PATH} element={<MainLayout/>}>
+      <Route path={MM_PATH} element={<MM/>}>
         <Route path='write' element={<>글 작성</>}></Route>
         <Route path=':customnumber' element={<>글 넘버</>}></Route>
         <Route path=':customnumber/update' element={<>글 수정</>}></Route>
       </Route>
-      <Route path={HR_PATH} element={<MainLayout/>}>
+      <Route path={HR_PATH} element={<HR/>}>
         <Route path='write' element={<>글 작성</>}></Route>
         <Route path=':customnumber' element={<>글 넘버</>}></Route>
         <Route path=':customnumber/update' element={<>글 수정</>}></Route>

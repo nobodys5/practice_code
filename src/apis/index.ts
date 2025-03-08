@@ -4,13 +4,16 @@ import { IdCheckRequestDto, SignInRequestDto, SignUPRequestDto, TelAuthCheckRequ
 import { SignInResponseDto } from "./dto/response/auth";
 import { GetSignInResponseDto } from "./dto/response/nurse";
 import { ACCESS_TOKEN } from "../constants";
+import { PostToolRequestDto } from "./dto/request/tool";
+import { GetToolResponseDto } from "./dto/response/tool";
 
 // variable : API URL 상수
   const API_DOMAIN = 'http://localhost:4040';
   const AUTH_DOMAIN = `${API_DOMAIN}/auth`;
   const NURTH_DOMAIN = `${API_DOMAIN}/api/v1/nurse`;
-  const accessToken = ACCESS_TOKEN;
-  const bearerToken = {headers:{ 'Authorization': `Bearer ${accessToken}`}}
+  const TOOL_DOMAIN = `${API_DOMAIN}/api/v1/tool`;
+  
+  const bearerToken = (accessToken: string) => ({headers:{ 'Authorization': `Bearer ${accessToken}`}})
 
   const ID_CHECK_DOMAIN = `${AUTH_DOMAIN}/id-check`;
   const TEL_AUTH_DOMAIN = `${AUTH_DOMAIN}/tel-auth`;
@@ -19,6 +22,8 @@ import { ACCESS_TOKEN } from "../constants";
   const SIGN_IN_DOMAIN = `${AUTH_DOMAIN}/login`;
 
   const NURSE_MOUDULE_URL = `${NURTH_DOMAIN}/sign-in`
+  const TOOL_URL = `${TOOL_DOMAIN}/`
+  const GET_TOOL_LIST_URL = `${TOOL_DOMAIN}/`
 // function: response data 처리 함수 //
 const responsedatahandler = <T>(response:AxiosResponse<T, any>) => {
         const {data} = response
@@ -63,8 +68,20 @@ export const signInRequest = async (requestBody: SignInRequestDto) => {
     return responseBody;
 };
 export const getsignInRequest = async (accessToken:string ) => {
-    const responseBody = await axios.get(NURSE_MOUDULE_URL, {headers:{ 'Authorization': `Bearer ${accessToken}`}})
+    const responseBody = await axios.get(NURSE_MOUDULE_URL, bearerToken(accessToken))
     .then(responsedatahandler<GetSignInResponseDto>)
+    .catch(responseerrorhandler);
+    return responseBody;
+};
+export const PostToolRequest = async (requestBody: PostToolRequestDto, accessToken: string ) => {
+    const responseBody = await axios.post(TOOL_URL, requestBody, bearerToken(accessToken))
+    .then(responsedatahandler<ResponseDto>)
+    .catch(responseerrorhandler);
+    return responseBody;
+};
+export const GetToolListRequest = async (accessToken: string ) => {
+    const responseBody = await axios.get(GET_TOOL_LIST_URL, bearerToken(accessToken))
+    .then(responsedatahandler<GetToolResponseDto>)
     .catch(responseerrorhandler);
     return responseBody;
 };
